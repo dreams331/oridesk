@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-require-imports */
+import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
-// next-auth v5 beta ESM/CJS interop issue with Next.js 16 — use require to get the callable
-const NextAuth = require("next-auth").default as (config: any) => any;
+const NextAuthFn = NextAuth as unknown as (config: any) => any;
 
 const config = {
   providers: [
@@ -68,4 +67,4 @@ const config = {
   trustHost: true,
 };
 
-export const { handlers, signIn, signOut, auth } = NextAuth(config);
+export const { handlers, signIn, signOut, auth } = NextAuthFn(config);

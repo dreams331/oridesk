@@ -52,8 +52,8 @@ export default function AgentTicketPage() {
   }
 
   useEffect(() => {
-    fetchTicket();
-    const interval = setInterval(fetchTicket, 15000); // auto-refresh every 15s
+    void fetchTicket();
+    const interval = setInterval(() => { void fetchTicket(); }, 15000);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
