@@ -93,7 +93,7 @@ export default async function AdminAgentsPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {agents.map((agent) => (
+              {agents.map((agent: typeof agents[number]) => (
                 <tr key={agent.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
