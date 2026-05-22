@@ -1,9 +1,16 @@
-import { auth } from "@/lib/auth";
+// @ts-expect-error next-auth v4 types not resolved with bundler moduleResolution
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
-  return (await auth(() => NextResponse.next()))(request, {} as never);
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET });
+  if (!token) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+  return NextResponse.next();
 }
 
 export const config = {

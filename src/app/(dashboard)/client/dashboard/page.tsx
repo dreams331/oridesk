@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { BarChart3, MessageSquare, Users, CheckCircle, Clock, TrendingUp, AlertCircle } from "lucide-react";
+import { BarChart3, MessageSquare, CheckCircle, Clock, TrendingUp, AlertCircle } from "lucide-react";
 import { formatDateTime, getStatusColour, getPriorityColour, getSentimentColour } from "@/lib/utils";
 import Link from "next/link";
 
