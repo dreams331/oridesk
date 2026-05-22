@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as NextAuthModule from "next-auth";
+/* eslint-disable @typescript-eslint/no-require-imports */
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
-// next-auth v5 beta TS types don't support Next.js 16 — cast to callable at runtime
-const NextAuth = ((NextAuthModule as any).default ?? NextAuthModule) as unknown as (config: any) => any;
+// next-auth v5 beta ESM/CJS interop issue with Next.js 16 — use require to get the callable
+const NextAuth = require("next-auth").default as (config: any) => any;
 
 const config = {
   providers: [
