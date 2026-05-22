@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  emailVerified DateTime?
+  image         String?
+  password      String
+  role          Role           @default(CLIENT)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  accounts      Account[]
+  agentProfile  AgentProfile?
+  clientProfile ClientProfile?
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ClientProfile {
+  id               String                  @id @default(cuid())
+  userId           String                  @unique
+  companyName      String
+  industry         String?
+  logo             String?
+  website          String?
+  widgetKey        String                  @unique @default(cuid())
+  brandColor       String                  @default("#3B82F6")
+  brandTone        String?
+  isActive         Boolean                 @default(true)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  agentAssignments AgentClientAssignment[]
+  channels         ClientChannel[]
+  user             User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  knowledgeBase    KnowledgeBase[]
+  tickets          Ticket[]
+}
+
+model AgentProfile {
+  id                String                  @id @default(cuid())
+  userId            String                  @unique
+  country           String?
+  phone             String?
+  bio               String?
+  idDocument        String?
+  status            AgentStatus             @default(PENDING)
+  careScore         Float                   @default(0)
+  totalTickets      Int                     @default(0)
+  resolvedTickets   Int                     @default(0)
+  isOnline          Boolean                 @default(false)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  clientAssignments AgentClientAssignment[]
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages          Message[]
+  tickets           Ticket[]
+}
+
+model AgentClientAssignment {
+  id        String        @id @default(cuid())
+  agentId   String
+  clientId  String
+  createdAt DateTime      @default(now())
+  agent     AgentProfile  @relation(fields: [agentId], references: [id])
+  client    ClientProfile @relation(fields: [clientId], references: [id])
+
+  @@unique([agentId, clientId])
+}
+
+model ClientChannel {
+  id        String        @id @default(cuid())
+  clientId  String
+  channel   Channel
+  isEnabled Boolean       @default(true)
+  config    Json?
+  client    ClientProfile @relation(fields: [clientId], references: [id])
+
+  @@unique([clientId, channel])
+}
+
+model Ticket {
+  id            String         @id @default(cuid())
+  clientId      String
+  agentId       String?
+  channel       Channel        @default(LIVE_CHAT)
+  status        TicketStatus   @default(OPEN)
+  priority      TicketPriority @default(MEDIUM)
+  subject       String
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  maskedName    String
+  maskedEmail   String
+  sentiment     String?
+  aiSuggestion  String?
+  careScore     Float?
+  resolvedAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  messages      Message[]
+  agent         AgentProfile?  @relation(fields: [agentId], references: [id])
+  client        ClientProfile  @relation(fields: [clientId], references: [id])
+}
+
+model Message {
+  id             String        @id @default(cuid())
+  ticketId       String
+  agentId        String?
+  content        String
+  isFromCustomer Boolean       @default(false)
+  isAiSuggestion Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  agent          AgentProfile? @relation(fields: [agentId], references: [id])
+  ticket         Ticket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+model KnowledgeBase {
+  id        String        @id @default(cuid())
+  clientId  String
+  title     String
+  content   String
+  category  String?
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  client    ClientProfile @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+  AGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Channel {
+  LIVE_CHAT
+  WHATSAPP
+  EMAIL
+  PHONE
+}
+
+enum AgentStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
