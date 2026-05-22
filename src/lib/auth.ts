@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// next-auth v5 beta has a known TS resolution issue with moduleResolution:bundler
-// Using a typed wrapper to satisfy the compiler while keeping correct runtime behaviour
-import _NextAuth from "next-auth";
+import * as NextAuthModule from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
-const NextAuth = _NextAuth as unknown as (config: any) => any;
+// next-auth v5 beta TS types don't support Next.js 16 — cast to callable at runtime
+const NextAuth = ((NextAuthModule as any).default ?? NextAuthModule) as unknown as (config: any) => any;
 
 const config = {
   providers: [
@@ -66,6 +65,7 @@ const config = {
     strategy: "jwt" as const,
   },
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  trustHost: true,
 };
 
 export const { handlers, signIn, signOut, auth } = NextAuth(config);
