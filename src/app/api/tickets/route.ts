@@ -110,6 +110,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Immediately post AI reply as a message so widget shows it instantly
+    if (aiSuggestion) {
+      await prisma.message.create({
+        data: {
+          ticketId: ticket.id,
+          content: aiSuggestion,
+          isFromCustomer: false,
+          isAiSuggestion: true,
+        },
+      });
+    }
+
     return NextResponse.json({ ticketId: ticket.id, success: true }, { status: 201 });
   } catch (error) {
     console.error("[POST /api/tickets]", error);

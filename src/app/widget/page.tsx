@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MessageSquare, X, Send, Minimize2, Loader2 } from "lucide-react";
+import { MessageSquare, X, Send, Minimize2, Loader2, Bot, User } from "lucide-react";
 
 interface Message {
   id: string;
   content: string;
   isFromCustomer: boolean;
+  isAiSuggestion: boolean;
   createdAt: string;
 }
 
@@ -26,6 +27,7 @@ export default function WidgetPage() {
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [humanRequested, setHumanRequested] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Get widgetKey from URL query
@@ -62,7 +64,7 @@ export default function WidgetPage() {
     });
     const data = await res.json();
     setTicketId(data.ticketId);
-    setMessages([{ id: "1", content: form.message, isFromCustomer: true, createdAt: new Date().toISOString() }]);
+    setMessages([{ id: "1", content: form.message, isFromCustomer: true, isAiSuggestion: false, createdAt: new Date().toISOString() }]);
     setStep("chat");
     setLoading(false);
   }
@@ -71,7 +73,7 @@ export default function WidgetPage() {
     e.preventDefault();
     if (!reply.trim() || !ticketId) return;
     setSending(true);
-    const newMsg: Message = { id: Date.now().toString(), content: reply, isFromCustomer: true, createdAt: new Date().toISOString() };
+    const newMsg: Message = { id: Date.now().toString(), content: reply, isFromCustomer: true, isAiSuggestion: false, createdAt: new Date().toISOString() };
     setMessages((prev) => [...prev, newMsg]);
     setReply("");
     await fetch(`/api/widget/reply`, {
@@ -167,10 +169,19 @@ export default function WidgetPage() {
             <>
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 <div className="bg-slate-100 rounded-xl p-3 text-xs text-slate-500 text-center">
-                  Connected! An agent will reply shortly 🎉
+                  ✨ AI Assistant is here — ask anything. We&apos;ll connect you to a human if needed.
                 </div>
                 {messages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.isFromCustomer ? "justify-end" : "justify-start"}`}>
+                  <div key={msg.id} className={`flex flex-col ${msg.isFromCustomer ? "items-end" : "items-start"}`}>
+                    {!msg.isFromCustomer && (
+                      <div className="flex items-center gap-1 mb-0.5 px-1">
+                        {msg.isAiSuggestion ? (
+                          <><Bot className="w-3 h-3 text-violet-500" /><span className="text-[10px] text-violet-500 font-medium">AI Assistant</span></>
+                        ) : (
+                          <><User className="w-3 h-3 text-blue-500" /><span className="text-[10px] text-blue-500 font-medium">Agent</span></>
+                        )}
+                      </div>
+                    )}
                     <div
                       className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
                         msg.isFromCustomer ? "text-white" : "bg-slate-100 text-slate-800"
@@ -181,6 +192,28 @@ export default function WidgetPage() {
                     </div>
                   </div>
                 ))}
+                {!humanRequested && (
+                  <div className="flex justify-center pt-1">
+                    <button
+                      onClick={async () => {
+                        setHumanRequested(true);
+                        await fetch("/api/widget/reply", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ ticketId, content: "I'd like to speak with a human agent please." }),
+                        });
+                      }}
+                      className="text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2"
+                    >
+                      Talk to a human instead
+                    </button>
+                  </div>
+                )}
+                {humanRequested && (
+                  <div className="bg-blue-50 rounded-xl p-3 text-xs text-blue-600 text-center">
+                    🙋 Request sent — an agent will join shortly.
+                  </div>
+                )}
                 <div ref={bottomRef} />
               </div>
               <div className="border-t border-slate-100 p-3 shrink-0">
