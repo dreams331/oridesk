@@ -46,7 +46,7 @@ Rules:
   ];
 
   const completion = await groq.chat.completions.create({
-    model: "llama3-8b-8192",
+    model: "llama-3.3-70b-versatile",
     messages,
     max_tokens: 300,
     temperature: 0.7,
@@ -61,7 +61,7 @@ Rules:
  */
 export async function analyseSentiment(message: string): Promise<string> {
   const completion = await groq.chat.completions.create({
-    model: "llama3-8b-8192",
+    model: "llama-3.3-70b-versatile",
     messages: [
       {
         role: "system",
@@ -87,7 +87,7 @@ export async function calculateCareScore(
   resolutionTime: number
 ): Promise<number> {
   const completion = await groq.chat.completions.create({
-    model: "llama3-8b-8192",
+    model: "llama-3.3-70b-versatile",
     messages: [
       {
         role: "system",
