@@ -82,11 +82,16 @@ export default function AgentTicketPage() {
     if (!ticket) return;
     setRefreshingAI(true);
     const lastCustomerMsg = [...ticket.messages].reverse().find((m) => m.isFromCustomer);
-    await fetch(`/api/tickets/${id}`, {
+    const res = await fetch(`/api/tickets/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "ai_suggest", customerMessage: lastCustomerMsg?.content || ticket.subject }),
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.error("AI suggestion failed:", err);
+      alert("AI suggestion failed: " + (err.detail || err.error || "Unknown error"));
+    }
     setRefreshingAI(false);
     await fetchTicket();
   }

@@ -78,29 +78,34 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     // Get fresh AI suggestion
     if (body.action === "ai_suggest") {
       const { customerMessage } = body;
-      const kb = ticket.client.knowledgeBase
-        .filter((k: { isActive: boolean }) => k.isActive)
-        .map((k: { title: string; content: string }) => `${k.title}: ${k.content}`)
-        .join("\n\n");
+      try {
+        const kb = ticket.client.knowledgeBase
+          .filter((k: { isActive: boolean }) => k.isActive)
+          .map((k: { title: string; content: string }) => `${k.title}: ${k.content}`)
+          .join("\n\n");
 
-      const history = ticket.messages
-        .slice(-6)
-        .map((m: { isFromCustomer: boolean; content: string }) => ({
-          role: m.isFromCustomer ? ("user" as const) : ("assistant" as const),
-          content: m.content,
-        }));
+        const history = ticket.messages
+          .slice(-6)
+          .map((m: { isFromCustomer: boolean; content: string }) => ({
+            role: m.isFromCustomer ? ("user" as const) : ("assistant" as const),
+            content: m.content,
+          }));
 
-      const suggestion = await generateReplySuggestion({
-        ticketSubject: ticket.subject,
-        customerMessage,
-        knowledgeBase: kb,
-        brandTone: ticket.client.brandTone || undefined,
-        companyName: ticket.client.companyName,
-        conversationHistory: history,
-      });
+        const suggestion = await generateReplySuggestion({
+          ticketSubject: ticket.subject,
+          customerMessage,
+          knowledgeBase: kb,
+          brandTone: ticket.client.brandTone || undefined,
+          companyName: ticket.client.companyName,
+          conversationHistory: history,
+        });
 
-      await prisma.ticket.update({ where: { id }, data: { aiSuggestion: suggestion } });
-      return NextResponse.json({ suggestion });
+        await prisma.ticket.update({ where: { id }, data: { aiSuggestion: suggestion } });
+        return NextResponse.json({ suggestion });
+      } catch (aiError) {
+        console.error("[ai_suggest error]", aiError);
+        return NextResponse.json({ error: "AI suggestion failed", detail: String(aiError) }, { status: 500 });
+      }
     }
 
     // Resolve ticket + calculate CareScore
