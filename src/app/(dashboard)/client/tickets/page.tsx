@@ -135,14 +135,14 @@ export default async function ClientTicketsPage({
               {tickets.map((ticket) => (
                 <tr key={ticket.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4">
-                    <div>
-                      <p className="font-medium text-slate-900 text-sm">{ticket.subject}</p>
+                    <Link href={`/client/tickets/${ticket.id}`} className="block">
+                      <p className="font-medium text-slate-900 text-sm hover:text-blue-600">{ticket.subject}</p>
                       {ticket.messages[0] && (
                         <p className="text-xs text-slate-400 mt-0.5 truncate max-w-xs">
                           {ticket.messages[0].content}
                         </p>
                       )}
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-4 py-4">
                     <p className="text-sm text-slate-700 font-medium">{ticket.customerName}</p>

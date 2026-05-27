@@ -55,7 +55,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     // Add a message reply
     if (body.action === "reply") {
-      const { content } = body;
+      const { content, isFromCustomer } = body;
       const agent = await prisma.agentProfile.findUnique({ where: { userId: session.user.id } });
 
       const message = await prisma.message.create({
@@ -63,7 +63,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           ticketId: id,
           agentId: agent?.id || null,
           content,
-          isFromCustomer: false,
+          isFromCustomer: isFromCustomer ?? false,
         },
       });
 
