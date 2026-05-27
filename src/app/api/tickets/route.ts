@@ -61,7 +61,14 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { widgetKey, customerName, customerEmail, customerPhone, subject, message, channel } = body;
+    const {
+      widgetKey,
+      customerName: _customerName, name,
+      customerEmail: _customerEmail, email,
+      customerPhone, subject, message, channel
+    } = body;
+    const customerName = _customerName || name;
+    const customerEmail = _customerEmail || email;
 
     if (!widgetKey || !customerName || !customerEmail || !subject || !message) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
