@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { maskName, maskEmail } from "@/lib/masking";
 import { analyseSentiment, generateReplySuggestion } from "@/lib/ai";
+import { sendNewTicketEmail } from "@/lib/email";
 
 // GET /api/tickets — fetch tickets based on role
 export async function GET(req: NextRequest) {
@@ -74,7 +75,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const client = await prisma.clientProfile.findUnique({ where: { widgetKey } });
+    const client = await prisma.clientProfile.findUnique({
+      where: { widgetKey },
+      include: { user: { select: { name: true, email: true } } },
+    });
     if (!client) return NextResponse.json({ error: "Invalid widget key" }, { status: 404 });
 
     // Run AI analysis in parallel
@@ -120,6 +124,17 @@ export async function POST(req: NextRequest) {
           isAiSuggestion: true,
         },
       });
+    }
+
+    // Notify client owner of new ticket (fire and forget)
+    if (client.user.email) {
+      sendNewTicketEmail(
+        client.user.email,
+        client.user.name || "there",
+        subject,
+        customerName,
+        ticket.id
+      ).catch(console.error);
     }
 
     return NextResponse.json({ ticketId: ticket.id, success: true }, { status: 201 });

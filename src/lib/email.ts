@@ -121,3 +121,74 @@ export async function sendAgentApprovedEmail(email: string, name: string) {
     `,
   });
 }
+
+// ─── Ticket Emails ────────────────────────────────────────────────────────────
+
+export async function sendNewTicketEmail(
+  clientEmail: string,
+  clientName: string,
+  ticketSubject: string,
+  customerName: string,
+  ticketId: string
+) {
+  await getResend().emails.send({
+    from: FROM,
+    to: clientEmail,
+    subject: `🎫 New ticket: ${ticketSubject}`,
+    html: `
+      <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="color: #0F172A; font-size: 28px; margin: 0;">OriDesk</h1>
+          <p style="color: #64748B; font-size: 12px; margin: 4px 0 0;">by Ori Global Ltd</p>
+        </div>
+        <h2 style="color: #0F172A;">Hi ${clientName}, a new ticket just came in</h2>
+        <p style="color: #334155; line-height: 1.6;">
+          <strong>${customerName}</strong> submitted a new ticket: <strong>${ticketSubject}</strong>
+        </p>
+        <p style="color: #334155; line-height: 1.6;">
+          Our AI assistant has already sent an initial reply. An agent will step in if needed.
+        </p>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/client/tickets/${ticketId}" 
+             style="background: #3B82F6; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+            View Ticket →
+          </a>
+        </div>
+        <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 32px 0;" />
+        <p style="color: #94A3B8; font-size: 12px; text-align: center;">
+          © ${new Date().getFullYear()} Ori Global Ltd. All rights reserved.
+        </p>
+      </div>
+    `,
+  });
+}
+
+export async function sendTicketResolvedEmail(
+  customerEmail: string,
+  customerName: string,
+  ticketSubject: string,
+  companyName: string
+) {
+  await getResend().emails.send({
+    from: FROM,
+    to: customerEmail,
+    subject: `✅ Your ticket "${ticketSubject}" has been resolved`,
+    html: `
+      <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <h1 style="color: #0F172A; font-size: 28px; margin: 0;">${companyName}</h1>
+          <p style="color: #64748B; font-size: 12px; margin: 4px 0 0;">Powered by OriDesk</p>
+        </div>
+        <h2 style="color: #16A34A;">Hi ${customerName}, your issue has been resolved ✅</h2>
+        <p style="color: #334155; line-height: 1.6;">
+          Your ticket <strong>"${ticketSubject}"</strong> has been marked as resolved. 
+          If you have any further questions, feel free to reach out again.
+        </p>
+        <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 32px 0;" />
+        <p style="color: #94A3B8; font-size: 12px; text-align: center;">
+          Powered by OriDesk — © ${new Date().getFullYear()} Ori Global Ltd.
+        </p>
+      </div>
+    `,
+  });
+}

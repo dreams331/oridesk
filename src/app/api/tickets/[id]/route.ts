@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateReplySuggestion, calculateCareScore } from "@/lib/ai";
+import { sendTicketResolvedEmail } from "@/lib/email";
 
 // GET /api/tickets/[id]
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -121,6 +122,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         where: { id },
         data: { status: "RESOLVED", resolvedAt: new Date(), careScore },
       });
+
+      // Notify customer that their issue was resolved
+      if (ticket.customerEmail) {
+        sendTicketResolvedEmail(
+          ticket.customerEmail,
+          ticket.customerName,
+          ticket.subject,
+          ticket.client.companyName
+        ).catch(console.error);
+      }
 
       // Update agent's running CareScore average
       if (ticket.agentId) {
